@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "vertigo.aminorconvenience.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FlowerPotBlockMixin",
+    "ItemStackMixin",
+    "PaintingEntityMixin",
+    "PlayerEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "a-minor-convenience",
+  "version": "${version}",
+  "name": "A Minor Convenience",
+  "description": "A collection of a few convenience features.",
+  "authors": [
+    "Vertigo GX"
+  ],
+  "license": "MIT",
+  "icon": "assets/a-minor-convenience/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "vertigo.aminorconvenience.AMinorConvenience"
+    ],
+    "modmenu": [
+      "vertigo.aminorconvenience.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "a-minor-convenience.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.13",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": ">=13.0.0"
+  }
+}
