@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public abstract class PaintingEntityMixin extends Entity {
 
 	@Shadow
-	public abstract void setVariant(RegistryEntry<PaintingVariant> variant);
+	protected abstract void setVariant(RegistryEntry<PaintingVariant> variant);
 
 	@Shadow
 	public abstract RegistryEntry<PaintingVariant> getVariant();
@@ -34,33 +34,34 @@ public abstract class PaintingEntityMixin extends Entity {
 
 	@Override
 	public ActionResult interact(PlayerEntity player, Hand hand) {
-		if (getWorld().isClient || !AMinorConvenience.CONFIG.cyclePaintings || !player.getStackInHand(hand).isOf(Items.PAINTING)) {
+		if(this.getEntityWorld().isClient() || !AMinorConvenience.CONFIG.cyclePaintings || !player.getStackInHand(hand).isOf(Items.PAINTING)) {
 			return ActionResult.PASS;
 		}
 		ArrayList<RegistryEntry<PaintingVariant>> variants = new ArrayList<>();
-		RegistryEntry<PaintingVariant> variant = this.getVariant();
+		RegistryEntry<PaintingVariant> variant = getVariant();
 		PaintingVariant value = variant.value();
 		int height = value.height();
 		int width = value.width();
-		for (RegistryEntry<PaintingVariant> v : this.getWorld().getRegistryManager().getOrThrow(RegistryKeys.PAINTING_VARIANT).iterateEntries(PaintingVariantTags.PLACEABLE)) {
+		for(RegistryEntry<PaintingVariant> v : this.getEntityWorld().getRegistryManager().getOrThrow(RegistryKeys.PAINTING_VARIANT).iterateEntries(
+				PaintingVariantTags.PLACEABLE)) {
 			PaintingVariant current = v.value();
-			if (current.height() != height || current.width() != width) {
+			if(current.height() != height || current.width() != width) {
 				continue;
 			}
 			variants.add(v);
 		}
 		int size = variants.size();
-		if (size < 2) {
+		if(size < 2) {
 			return ActionResult.FAIL;
 		}
 		int index = variants.indexOf(variant);
 		size--;
-		if (player.isSneaking()) {
+		if(player.isSneaking()) {
 			index -= index == 0 ? -size : 1;
 		} else {
 			index += index == size ? -size : 1;
 		}
-		this.setVariant(variants.get(index));
+		setVariant(variants.get(index));
 		player.incrementStat(Stats.USED.getOrCreateStat(Items.PAINTING));
 		return ActionResult.SUCCESS;
 	}

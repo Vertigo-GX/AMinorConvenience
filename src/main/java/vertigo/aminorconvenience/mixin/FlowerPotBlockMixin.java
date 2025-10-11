@@ -38,21 +38,22 @@ public abstract class FlowerPotBlockMixin {
 	protected abstract boolean isEmpty();
 
 	@Inject(method = "onUseWithItem", at = @At("HEAD"), cancellable = true)
-	protected void onUseWithItemInject(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ActionResult> info) {
-		if (world.isClient || !AMinorConvenience.CONFIG.swapFlowers || this.isEmpty()) {
+	protected void onUseWithItemInject(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
+			BlockHitResult hit, CallbackInfoReturnable<ActionResult> info) {
+		if(world.isClient() || !AMinorConvenience.CONFIG.swapFlowers || this.isEmpty()) {
 			return;
 		}
-		if (stack.getItem() instanceof BlockItem i) {
+		if(stack.getItem() instanceof BlockItem i) {
 			Block block = i.getBlock();
-			if (block.equals(this.content)) {
+			if(block.equals(this.content)) {
 				return;
 			}
 			Block potted = CONTENT_TO_POTTED.get(block);
-			if (potted == null) {
+			if(potted == null) {
 				return;
 			}
 			ItemStack content = new ItemStack(this.content);
-			if (!player.giveItemStack(content)) {
+			if(!player.giveItemStack(content)) {
 				player.dropItem(content, false);
 			}
 			world.setBlockState(pos, potted.getDefaultState(), 3);
