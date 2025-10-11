@@ -40,28 +40,29 @@ public abstract class FlowerPotBlockMixin {
 	@Inject(method = "onUseWithItem", at = @At("HEAD"), cancellable = true)
 	protected void onUseWithItemInject(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
 			BlockHitResult hit, CallbackInfoReturnable<ActionResult> info) {
-		if(world.isClient() || !AMinorConvenience.CONFIG.swapFlowers || this.isEmpty()) {
+		if(world.isClient() || !AMinorConvenience.CONFIG.swapFlowers || isEmpty()) {
 			return;
 		}
-		if(stack.getItem() instanceof BlockItem i) {
-			Block block = i.getBlock();
-			if(block.equals(this.content)) {
-				return;
-			}
-			Block potted = CONTENT_TO_POTTED.get(block);
-			if(potted == null) {
-				return;
-			}
-			ItemStack content = new ItemStack(this.content);
-			if(!player.giveItemStack(content)) {
-				player.dropItem(content, false);
-			}
-			world.setBlockState(pos, potted.getDefaultState(), 3);
-			world.emitGameEvent(player, GameEvent.BLOCK_CHANGE, pos);
-			player.incrementStat(Stats.POT_FLOWER);
-			stack.decrementUnlessCreative(1, player);
-			info.setReturnValue(ActionResult.SUCCESS);
+		if(!(stack.getItem() instanceof BlockItem item)) {
+			return;
 		}
+		Block block = item.getBlock();
+		if(block.equals(this.content)) {
+			return;
+		}
+		Block potted = CONTENT_TO_POTTED.get(block);
+		if(potted == null) {
+			return;
+		}
+		ItemStack content = new ItemStack(this.content);
+		if(!player.giveItemStack(content)) {
+			player.dropItem(content, false);
+		}
+		world.setBlockState(pos, potted.getDefaultState(), 3);
+		world.emitGameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+		player.incrementStat(Stats.POT_FLOWER);
+		stack.decrementUnlessCreative(1, player);
+		info.setReturnValue(ActionResult.SUCCESS);
 	}
 
 }
