@@ -6,7 +6,7 @@
     "FlowerPotBlockMixin",
     "ItemStackMixin",
     "PaintingEntityMixin",
-    "PlayerEntityMixin"
+    "PlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

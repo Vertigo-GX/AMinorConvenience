@@ -1,18 +1,5 @@
 package vertigo.aminorconvenience.mixin;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.FlowerPotBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,46 +10,59 @@ import vertigo.aminorconvenience.AMinorConvenience;
 
 import java.util.Map;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
+
 @Mixin(FlowerPotBlock.class)
 public abstract class FlowerPotBlockMixin {
 
 	@Shadow
 	@Final
-	private static Map<Block, Block> CONTENT_TO_POTTED;
+	private static Map<Block, Block> POTTED_BY_CONTENT;
 
 	@Shadow
 	@Final
-	private Block content;
+	private Block potted;
 
 	@Shadow
 	protected abstract boolean isEmpty();
 
-	@Inject(method = "onUseWithItem", at = @At("HEAD"), cancellable = true)
-	protected void onUseWithItemInject(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
-			BlockHitResult hit, CallbackInfoReturnable<ActionResult> info) {
-		if(world.isClient() || !AMinorConvenience.CONFIG.swapFlowers || isEmpty()) {
+	@Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
+	protected void useItemOnInject(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> info) {
+		if(world.isClientSide() || !AMinorConvenience.CONFIG.swapFlowers || isEmpty()) {
 			return;
 		}
 		if(!(stack.getItem() instanceof BlockItem item)) {
 			return;
 		}
 		Block block = item.getBlock();
-		if(block.equals(this.content)) {
+		if(block.equals(this.potted)) {
 			return;
 		}
-		Block potted = CONTENT_TO_POTTED.get(block);
+		Block potted = POTTED_BY_CONTENT.get(block);
 		if(potted == null) {
 			return;
 		}
-		ItemStack content = new ItemStack(this.content);
-		if(!player.giveItemStack(content)) {
-			player.dropItem(content, false);
+		ItemStack content = new ItemStack(this.potted);
+		if(!player.addItem(content)) {
+			player.drop(content, false);
 		}
-		world.setBlockState(pos, potted.getDefaultState(), 3);
-		world.emitGameEvent(player, GameEvent.BLOCK_CHANGE, pos);
-		player.incrementStat(Stats.POT_FLOWER);
-		stack.decrementUnlessCreative(1, player);
-		info.setReturnValue(ActionResult.SUCCESS);
+		world.setBlock(pos, potted.defaultBlockState(), 3);
+		world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+		player.awardStat(Stats.POT_FLOWER);
+		stack.consume(1, player);
+		info.setReturnValue(InteractionResult.SUCCESS);
 	}
 
 }

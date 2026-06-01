@@ -1,49 +1,50 @@
 package vertigo.aminorconvenience.mixin;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.decoration.painting.PaintingEntity;
-import net.minecraft.entity.decoration.painting.PaintingVariant;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.PaintingVariantTags;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import vertigo.aminorconvenience.AMinorConvenience;
 
 import java.util.ArrayList;
 
-@Mixin(PaintingEntity.class)
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.stats.Stats;
+import net.minecraft.tags.PaintingVariantTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.painting.Painting;
+import net.minecraft.world.entity.decoration.painting.PaintingVariant;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+
+@Mixin(Painting.class)
 public abstract class PaintingEntityMixin extends Entity {
 
 	@Shadow
-	protected abstract void setVariant(RegistryEntry<PaintingVariant> variant);
+	protected abstract void setVariant(Holder<PaintingVariant> variant);
 
 	@Shadow
-	public abstract RegistryEntry<PaintingVariant> getVariant();
+	public abstract Holder<PaintingVariant> getVariant();
 
-	public PaintingEntityMixin(EntityType<?> type, World world) {
+	public PaintingEntityMixin(EntityType<?> type, Level world) {
 		super(type, world);
 	}
 
 	@Override
-	public ActionResult interact(PlayerEntity player, Hand hand) {
-		if(this.getEntityWorld().isClient() || !AMinorConvenience.CONFIG.cyclePaintings || !player.getStackInHand(hand).isOf(Items.PAINTING)) {
-			return ActionResult.PASS;
+	public @NonNull InteractionResult interact(@NonNull Player player, @NonNull InteractionHand hand) {
+		if(this.level().isClientSide() || !AMinorConvenience.CONFIG.cyclePaintings || !player.getItemInHand(hand).is(Items.PAINTING)) {
+			return InteractionResult.PASS;
 		}
-		ArrayList<RegistryEntry<PaintingVariant>> variants = new ArrayList<>();
-		RegistryEntry<PaintingVariant> variant = getVariant();
+		ArrayList<Holder<PaintingVariant>> variants = new ArrayList<>();
+		Holder<PaintingVariant> variant = getVariant();
 		PaintingVariant value = variant.value();
 		int height = value.height();
 		int width = value.width();
-		for(RegistryEntry<PaintingVariant> v : this.getEntityWorld().getRegistryManager().getOrThrow(RegistryKeys.PAINTING_VARIANT).iterateEntries(
-				PaintingVariantTags.PLACEABLE)) {
+		for(Holder<PaintingVariant> v : this.level().registryAccess().lookupOrThrow(Registries.PAINTING_VARIANT).getTagOrEmpty(PaintingVariantTags.PLACEABLE)) {
 			PaintingVariant current = v.value();
 			if(current.height() != height || current.width() != width) {
 				continue;
@@ -52,18 +53,18 @@ public abstract class PaintingEntityMixin extends Entity {
 		}
 		int size = variants.size();
 		if(size < 2) {
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		}
 		int index = variants.indexOf(variant);
 		size--;
-		if(player.isSneaking()) {
+		if(player.isShiftKeyDown()) {
 			index -= index == 0 ? -size : 1;
 		} else {
 			index += index == size ? -size : 1;
 		}
 		setVariant(variants.get(index));
-		player.incrementStat(Stats.USED.getOrCreateStat(Items.PAINTING));
-		return ActionResult.SUCCESS;
+		player.awardStat(Stats.ITEM_USED.get(Items.PAINTING));
+		return InteractionResult.SUCCESS;
 	}
 
 }
