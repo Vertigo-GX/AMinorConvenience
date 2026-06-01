@@ -22,7 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 @Mixin(Painting.class)
-public abstract class PaintingEntityMixin extends Entity {
+public abstract class PaintingMixin extends Entity {
 
 	@Shadow
 	protected abstract void setVariant(Holder<PaintingVariant> variant);
@@ -30,7 +30,7 @@ public abstract class PaintingEntityMixin extends Entity {
 	@Shadow
 	public abstract Holder<PaintingVariant> getVariant();
 
-	public PaintingEntityMixin(EntityType<?> type, Level world) {
+	public PaintingMixin(EntityType<?> type, Level world) {
 		super(type, world);
 	}
 
